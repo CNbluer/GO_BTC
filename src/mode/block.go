@@ -2,7 +2,6 @@ package mode
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"time"
 	"encoding/binary"
 )
@@ -27,33 +26,37 @@ func uint2byte(num uint64)[]byte  {
 	return buff.Bytes()
 }
 
-func (this *Block)SetHash()  {
-	allinfo:=[][]byte{
-		uint2byte(this.Version),
-		this.MerkelRoot,
-		uint2byte(this.TimeStamp),
-		uint2byte(this.Difficulty),
-		uint2byte(this.Nonce),
-		this.PrevBlockHash,
-		this.Data,
-	}
-	info:=bytes.Join(allinfo,[]byte{})
-	hash:=sha256.Sum256(info)
-	this.Hash=hash[:]
-}
+//此函数为第一代版本使用，后被pow代替，只有挖矿之后才能知道真正的哈希值
+//func (this *Block)SetHash()  {
+//	allinfo:=[][]byte{
+//		uint2byte(this.Version),
+//		this.MerkelRoot,
+//		uint2byte(this.TimeStamp),
+//		uint2byte(this.Difficulty),
+//		uint2byte(this.Nonce),
+//		this.PrevBlockHash,
+//		this.Data,
+//	}
+//	info:=bytes.Join(allinfo,[]byte{})
+//	hash:=sha256.Sum256(info)
+//	this.Hash=hash[:]
+//}
 
 func NewBlock(data string,prevhash []byte)*Block  {
-	this:=Block{
+	block:=Block{
 		Version:00,
 		MerkelRoot:[]byte{},
 		TimeStamp:uint64(time.Now().Unix()),
 		Difficulty:0,
-		Nonce:0,
 		PrevBlockHash:prevhash,
 		Data:[]byte(data),
 	}
-	this.SetHash()
-	return &this
+	pow:=NewPOW(block)
+	pow.block=block
+	nonce,hash:=pow.run()
+	block.Nonce=nonce
+	block.Hash=hash
+	return &block
 }
 
 
