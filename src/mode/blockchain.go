@@ -52,7 +52,7 @@ func IfchainExist()bool  {
 }
 
 //在数据库中创建区块链
-func NewblockChain()*BlockChain {
+func NewblockChain(address string)*BlockChain {
 	if IfchainExist(){
 		fmt.Println("区块链已经存在，无需创建,可添加或遍历")
 		os.Exit(-1)
@@ -69,7 +69,8 @@ func NewblockChain()*BlockChain {
 			if err!=nil {
 				log.Panic(err)
 			}
-			block:=NewBlock(genesisInfo,[]byte{})
+			transaction:=NewcoinBasetx([]byte(address),[]byte(genesisInfo))
+			block:=NewBlock([]*Transaction{transaction},[]byte{})
 			bytes:=block.Serialize()
 			bucket.Put(block.Hash,bytes)
 			bucket.Put([]byte("lasthash"),block.Hash)
@@ -102,9 +103,8 @@ func Getblockchainjbk()*BlockChain {
 	return &BlockChain{db,lasthash}
 }
 
-
-func (this *BlockChain)AddBlock(data string)  {
-	newblock:=NewBlock(data,this.lasthash)
+func (this *BlockChain)AddBlock(txs []*Transaction)  {
+	newblock:=NewBlock(txs,this.lasthash)
 	this.db.Update(func(tx *bolt.Tx) error {
 		bucket:=tx.Bucket([]byte("blockBucket"))
 		if bucket==nil {

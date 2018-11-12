@@ -1,9 +1,7 @@
 package mode
 
 import (
-	"bytes"
 	"time"
-	"encoding/binary"
 )
 
 type Block struct {
@@ -13,17 +11,18 @@ type Block struct {
 	Difficulty uint64	//难度值
 	Nonce uint64		//挖矿所找的随机数
 	PrevBlockHash []byte
-	Data []byte
 	Hash []byte
+	Transactions []*Transaction
 }
 
 func uint2byte(num uint64)[]byte  {
-	var buff bytes.Buffer
-	err:=binary.Write(&buff,binary.BigEndian,&num)
-	if err!=nil {
-		panic(err)
-	}
-	return buff.Bytes()
+	//var buff bytes.Buffer
+	//err:=binary.Write(&buff,binary.BigEndian,&num)
+	//if err!=nil {
+	//	panic(err)
+	//}
+	temp:=string(num)
+	return []byte(temp)
 }
 
 //此函数为第一代版本使用，后被pow代替，只有挖矿之后才能知道真正的哈希值
@@ -42,14 +41,14 @@ func uint2byte(num uint64)[]byte  {
 //	this.Hash=hash[:]
 //}
 
-func NewBlock(data string,prevhash []byte)*Block  {
+func NewBlock(txs []*Transaction,prevhash []byte)*Block  {
 	block:=Block{
 		Version:00,
 		MerkelRoot:[]byte{},
 		TimeStamp:uint64(time.Now().Unix()),
-		Difficulty:0,
+		Difficulty:difficulty,
 		PrevBlockHash:prevhash,
-		Data:[]byte(data),
+		Transactions:txs,
 	}
 	pow:=NewPOW(block)
 	pow.block=block
